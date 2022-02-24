@@ -15,19 +15,21 @@ class DiscordRequest {
   apiEndpoint: string
   token: string
   isProcessing = false
+  private requestQueue: requestQueueMember[] = []
+  private cooldownMS = 0
+  private remainingRequests = 1
   constructor(token: string, apiEndpoint = 'https://discord.com/api/v9') {
     this.apiEndpoint = apiEndpoint
     this.token = token
   }
-  private requestQueue: requestQueueMember[] = []
-  private cooldownMS = 0
-  private remainingRequests = 1
+
   addToQueue(url: string) {
     return new Promise((resolve, reject) => {
       this.requestQueue.push({ url, resolve, reject })
       if (!this.isProcessing) this.processRequests()
     })
   }
+
   getParseLimitHeaders(headers: Record<string, any>): rateLimitResponse {
     return {
       "X-RateLimit-Limit": headers["X-RateLimit-Limit"],
@@ -38,6 +40,7 @@ class DiscordRequest {
       "X-RateLimit-Scope": headers["X-RateLimit-Scope"],
     }
   }
+
   private async processRequests<ResObj = any>() {
     if (!this.token) {
       throw new Error('Not logged in.');
@@ -61,6 +64,8 @@ class DiscordRequest {
         resolve(body)
       })
     }
+    this.isProcessing = false
   }
+
 }
 export default DiscordRequest
