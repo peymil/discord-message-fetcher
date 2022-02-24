@@ -18,13 +18,13 @@ class DiscordRequest {
   private requestQueue: requestQueueMember[] = []
   private cooldownMS = 0
   private remainingRequests = 1
-  constructor(token: string, apiEndpoint = 'https://discord.com/api/v9') {
+  constructor(token: string, apiEndpoint: string) {
     this.apiEndpoint = apiEndpoint
     this.token = token
   }
 
-  addToQueue(url: string) {
-    return new Promise((resolve, reject) => {
+  addToQueue<ResObj = any>(url: string) {
+    return new Promise<ResObj>((resolve, reject) => {
       this.requestQueue.push({ url, resolve, reject })
       if (!this.isProcessing) this.processRequests()
     })
@@ -51,6 +51,8 @@ class DiscordRequest {
       if (this.remainingRequests === 0) {
         await awaitAsync(this.cooldownMS)
       }
+
+      //that needs to done asynchronously
       const result = await fetch(url, {
         headers: { authorization: this.token },
       })
