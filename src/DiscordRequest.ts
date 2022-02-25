@@ -13,13 +13,15 @@ type rateLimitResponse = {
 }
 class DiscordRequest {
   apiEndpoint: string
-  token: string
+  private token = ""
   isProcessing = false
   private requestQueue: requestQueueMember[] = []
   private cooldownMS = 0
   private remainingRequests = 1
-  constructor(token: string, apiEndpoint: string) {
+  constructor(apiEndpoint: string) {
     this.apiEndpoint = apiEndpoint
+  }
+  setToken(token: string) {
     this.token = token
   }
 
@@ -42,18 +44,14 @@ class DiscordRequest {
   }
 
   private async processRequests<ResObj = any>() {
-    if (!this.token) {
-      throw new Error('Not logged in.');
-    }
 
     while (this.requestQueue.length !== 0) {
       const { url, reject, resolve } = this.requestQueue.shift()!
       if (this.remainingRequests === 0) {
         await awaitAsync(this.cooldownMS)
       }
-
       //that needs to done asynchronously
-      const result = await fetch(url, {
+      const result = await fetch(`${this.apiEndpoint}${url}`, {
         headers: { authorization: this.token },
       })
 
