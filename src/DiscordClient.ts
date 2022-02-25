@@ -5,10 +5,9 @@ import { awaitAsync } from './utils';
 import DiscordRequest from "./DiscordRequest";
 
 class DiscordClient {
-  token: string | undefined;
   discordRequest: DiscordRequest
-  constructor(token: string, apiEndpoint = 'https://discord.com/api/v9') {
-    this.discordRequest = new DiscordRequest(token, apiEndpoint)
+  constructor(apiEndpoint = 'https://discord.com/api/v9') {
+    this.discordRequest = new DiscordRequest(apiEndpoint)
 
   }
 
@@ -108,10 +107,10 @@ class DiscordClient {
   }
 
   async login(token: string) {
-    this.token = token;
+    this.discordRequest.setToken(token)
     const result = await this.discordRequest.addToQueue<APIUser>('/users/@me');
     if (!result.id) {
-      this.token = undefined;
+      this.discordRequest.setToken("")
       throw new Error('Invalid token');
     }
   }
